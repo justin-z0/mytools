@@ -2,6 +2,7 @@ use chrono::*;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
+#[command(version)]
 pub struct TimestampCommand {
     /// 命令行的输入
     input: String,
