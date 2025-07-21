@@ -1,5 +1,6 @@
 use chrono::*;
 use clap::Parser;
+use chrono_tz::Asia::Shanghai;
 
 #[derive(Parser, Debug)]
 #[command(version)]
@@ -15,7 +16,7 @@ pub struct TimestampCommand {
 impl TimestampCommand {
     pub fn run(&self) {
         println!("执行命令：{:?}", self);
-        let output = format_timestamp(&self.input);
+        let output = format_timestamp(&self.input, self.ms);
         println!("处理结果为：{}", output);
     }
 }
@@ -25,26 +26,20 @@ impl TimestampCommand {
 /// * `timestamp` - 要格式化的时间戳字符串
 /// # 返回
 /// 格式化后的时间字符串，如果出错则返回错误信息
-pub fn format_timestamp(timestamp: &String) -> String {
+pub fn format_timestamp(timestamp: &String, is_ms: bool) -> String {
         match timestamp.parse::<i64>() {
             Ok(ts) => {
+                let ts = if is_ms { ts / 1000 } else { ts };
                 // 使用chrono格式化时间戳
                 let datetime = DateTime::<Utc>::from_timestamp(ts, 0);
-                match datetime {
-                    Some(dt) => {
-                        let formatted = dt.format("%Y-%m-%d %H:%M:%S").to_string();
-                        formatted
-                    }
-                    None => {
-                        let error_msg = "错误: 无效的时间戳".to_string();
-                        println!("{}", error_msg);
-                        error_msg
-                    }
-                }
+                let sh_time = match datetime {
+                    Some(utc_time) => utc_time.with_timezone(&Shanghai).format("%Y-%m-%d %H:%M:%S").to_string(),
+                    None => "时间转换失败".to_string()
+                };
+                sh_time
             }
             Err(_) => {
                 let error_msg = "错误: 时间戳格式无效，请输入有效的Unix时间戳".to_string();
-                println!("{}", error_msg);
                 error_msg
             }
         }
