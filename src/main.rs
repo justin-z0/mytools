@@ -16,6 +16,7 @@ fn main() {
     let cli = Cli::parse();
     match &cli.command {
         YTSubCommand::Timestamp(cmd) => cmd.run(),
+        YTSubCommand::Password(cmd) => cmd.run(),
     }
 }
 
