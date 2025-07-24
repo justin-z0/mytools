@@ -3,6 +3,7 @@ use clap::Subcommand;
 use std::fs;
 use serde::{self, Deserialize, Serialize};
 use dirs::home_dir;
+use toml_edit::{DocumentMut, Value, Table, Item};
 
 #[derive(Parser)]
 pub struct PasswordCommand {
@@ -59,6 +60,7 @@ fn read_target(target: &String) {
         println!("配置文件不存在");
         return;
     }
+
     let content = fs::read_to_string(config_path);
     match content {
         Ok(content) => {
@@ -81,34 +83,20 @@ fn read_target(target: &String) {
 
 fn write_target(target: &String, username: &String, password: &String) {
     let mut config_path = home_dir().expect("无法访问Home目录");
-    config_path.push(".config/yt/config.toml");
-    let mut config: Config;
-    if config_path.exists() {
-        let content = fs::read_to_string(&config_path).unwrap();
-        config = toml::from_str(&content).unwrap();
+    config_path.push(".config/yt/config2.toml");
+
+    let content = if config_path.exists() {
+        fs::read_to_string(&config_path).unwrap()
     } else {
-        println!("配置文件不存在");
-        fs::create_dir_all(config_path.parent().unwrap()).unwrap();
-        config = Config::default();
-    }
+        String::new()
+    };
 
-    let item = config.targets.get_mut(target);
-    match item {
-        Some(target) => {
-            target.username = username.clone();
-            target.password = password.clone();
-        }
-        None => {
-            config.targets.insert(target.clone(), Target { username: username.clone(), password: password.clone() });
-        }
-    }
+    let mut doc = content.parse::<DocumentMut>().unwrap();
+    let mut new_table = Table::new();
+    new_table.insert("username", Item::Value(Value::from(username)));
+    new_table.insert("password", Item::Value(Value::from(password)));
+    doc[target] = Item::Table(new_table);
 
-    match fs::write(config_path, toml::to_string(&config).unwrap()) {
-        Ok(_) => {
-            println!("写入配置文件成功");
-        }
-        Err(e) => {
-            eprintln!("写入配置文件失败: {}", e);
-        }
-    }
+    // 文件不存在时，会自动创建
+    fs::write(config_path, doc.to_string()).unwrap();
 }
