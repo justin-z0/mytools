@@ -83,7 +83,7 @@ fn read_target(target: &String) {
 
 fn write_target(target: &String, username: &String, password: &String) {
     let mut config_path = home_dir().expect("无法访问Home目录");
-    config_path.push(".config/yt/config2.toml");
+    config_path.push(".config/yt/config.toml");
 
     let content = if config_path.exists() {
         fs::read_to_string(&config_path).unwrap()
