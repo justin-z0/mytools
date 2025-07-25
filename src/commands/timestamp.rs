@@ -1,7 +1,6 @@
 use chrono::*;
 use clap::Parser;
 use chrono_tz::Asia::Shanghai;
-use crate::commands::Runable;
 
 #[derive(Parser, Debug)]
 #[command(version)]
@@ -14,7 +13,7 @@ pub struct TimestampCommand {
     ms: bool
 }
 
-impl Runable for TimestampCommand {
+impl super::Runable for TimestampCommand {
     fn run(&self) {
         println!("执行命令：{:?}", self);
         let output = format_timestamp(&self.input, self.ms);

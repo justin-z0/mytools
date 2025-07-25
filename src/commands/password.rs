@@ -4,7 +4,6 @@ use std::fs;
 use serde::{self, Deserialize, Serialize};
 use dirs::home_dir;
 use toml_edit::{DocumentMut, Value, Table, Item};
-use crate::commands::Runable;
 
 #[derive(Parser)]
 pub struct PasswordCommand {
@@ -31,7 +30,7 @@ pub enum PasswordSubCommand {
     }
 }
 
-impl Runable for PasswordCommand {
+impl super::Runable for PasswordCommand {
     fn run(&self) {
         match &self.command {
             PasswordSubCommand::Get { target } => {

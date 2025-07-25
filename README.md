@@ -19,13 +19,30 @@
 
 所有的子命令调用都由 `yt` 发起，例如：`yt timestamp 1752915718`
 
-## 已支持工具介绍
+## 工具列表
 
-- timestamp
-- password
+- timestamp 时间戳格式化工具 _( ✅ 2025/07/19)_
+- password 密码管理工具 _(✅ 2025/07/24)_
+- completion 生成命令补全脚本 _(✅ 2025/07/25)_
 
-## 计划
+## 工具详细说明
 
-- 时间戳格式化工具 _( ✅ 2025/07/19)_
-- 密码管理工具 _(✅ 2025/07/24)_
-- 命令补全脚本
+### completion
+
+生成命令补全脚本，支持 bash、zsh、fish 等多种 shell。
+
+使用示例：
+
+```bash
+# 生成 zsh 补全脚本并添加到 ~/.zshrc
+yt completion zsh > ~/.zfunc/_yt
+echo 'fpath=(~/.zfunc $fpath)' >> ~/.zshrc
+echo 'autoload -Uz compinit && compinit' >> ~/.zshrc
+
+# 生成 bash 补全脚本并添加到 ~/.bashrc
+yt completion bash > ~/.bash_completion.d/yt
+ echo 'source ~/.bash_completion.d/yt' >> ~/.bashrc
+
+# 生成 fish 补全脚本并添加到 ~/.config/fish/completions/
+yt completion fish > ~/.config/fish/completions/yt.fish
+```
