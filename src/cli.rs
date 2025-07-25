@@ -3,17 +3,19 @@ use crate::commands::{Runable, timestamp, password};
 use std::boxed::Box;
 
 #[derive(Subcommand)]
-pub enum YTSubCommand {
+pub enum YTCommand {
+    /// 将时间戳转换为时区时间
     Timestamp(timestamp::TimestampCommand),
+    /// 密码存取工具
     Password(password::PasswordCommand),
     // 添加其他子命令
 }
 
-impl YTSubCommand {
+impl YTCommand {
     pub fn run(self) {
         let cmd: Box<dyn Runable> = match self {
-            YTSubCommand::Timestamp(cmd) => Box::new(cmd),
-            YTSubCommand::Password(cmd) => Box::new(cmd),
+            YTCommand::Timestamp(cmd) => Box::new(cmd),
+            YTCommand::Password(cmd) => Box::new(cmd),
         };
         cmd.run();
     }

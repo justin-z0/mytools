@@ -2,13 +2,13 @@ mod commands;
 mod cli;
 
 use clap::Parser;
-use cli::YTSubCommand;
+use cli::YTCommand;
 
 #[derive(Parser)]
 #[command(version)]
 struct Cli {
     #[command(subcommand)]
-    command: YTSubCommand,
+    command: YTCommand,
 }
 
 

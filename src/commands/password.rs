@@ -15,10 +15,12 @@ pub struct PasswordCommand {
 
 #[derive(Subcommand)]
 pub enum PasswordSubCommand {
+    /// 获取密码
     Get {
         /// 获取特定目标（Host主机或站点）的账户信息
         target: String
     },
+    /// 设置密码
     Set {
         /// 目标站点
         target: String,
