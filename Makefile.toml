@@ -1,5 +1,4 @@
 [tasks.build-and-copy]
-runner = "bash"
 script = [
     "cargo build --release",
     "CRATE_NAME=$(grep '^name' Cargo.toml | cut -d '\"' -f2)",
