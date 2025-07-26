@@ -1,11 +1,12 @@
-use chrono::*;
+use chrono::{Utc, DateTime};
 use clap::Parser;
 use chrono_tz::Asia::Shanghai;
 
 #[derive(Parser, Debug)]
 #[command(version)]
 pub struct TimestampCommand {
-    /// 命令行的输入
+    /// 当不指定时，用于获取系统当前时间戳
+    #[arg(default_value = "")]
     input: String,
 
     /// 是否为毫秒
@@ -15,9 +16,13 @@ pub struct TimestampCommand {
 
 impl super::Runable for TimestampCommand {
     fn run(&self) {
-        println!("执行命令：{:?}", self);
-        let output = format_timestamp(&self.input, self.ms);
-        println!("处理结果为：{}", output);
+        if self.input.is_empty() {
+            let timestamp = get_timestamp(self.ms);
+            println!("当前时间戳为: {}", timestamp);
+        } else {
+            let formated_time = format_timestamp(&self.input, self.ms);
+            println!("格式化后的时间为: {}", formated_time);
+        }
     }
 }
 
@@ -26,21 +31,32 @@ impl super::Runable for TimestampCommand {
 /// * `timestamp` - 要格式化的时间戳字符串
 /// # 返回
 /// 格式化后的时间字符串，如果出错则返回错误信息
-pub fn format_timestamp(timestamp: &String, is_ms: bool) -> String {
+fn format_timestamp(timestamp: &String, is_ms: bool) -> String {
         match timestamp.parse::<i64>() {
             Ok(ts) => {
-                let ts = if is_ms { ts / 1000 } else { ts };
-                // 使用chrono格式化时间戳
-                let datetime = DateTime::<Utc>::from_timestamp(ts, 0);
-                let sh_time = match datetime {
-                    Some(utc_time) => utc_time.with_timezone(&Shanghai).format("%Y-%m-%d %H:%M:%S").to_string(),
-                    None => "时间转换失败".to_string()
-                };
-                sh_time
+                let datetime = if is_ms {
+                    // 毫秒级时间戳
+                    DateTime::<Utc>::from_timestamp_millis(ts)
+                } else {
+                    // 秒级时间戳
+                    DateTime::<Utc>::from_timestamp(ts, 0)
+                }.unwrap();
+
+                datetime.with_timezone(&Shanghai)
+                    .format("%Y-%m-%d %H:%M:%S")
+                    .to_string()
             }
             Err(_) => {
                 let error_msg = "错误: 时间戳格式无效，请输入有效的Unix时间戳".to_string();
                 error_msg
             }
         }
+}
+
+fn get_timestamp(is_ms: bool) -> u64 {
+    if is_ms {
+        Utc::now().timestamp_millis() as u64
+    } else {
+        Utc::now().timestamp() as u64
+    }
 }
