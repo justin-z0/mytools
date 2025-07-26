@@ -1,6 +1,7 @@
 pub mod timestamp;
 pub mod password;
 pub mod completion;
+pub mod lottery;
 
 /// 所有命令的通用trait
 pub trait Runable {
