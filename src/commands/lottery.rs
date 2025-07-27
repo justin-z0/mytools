@@ -8,6 +8,7 @@ use crossterm::{
 use std::io::{stdout, Write};
 
 #[derive(Parser)]
+#[command(about="模拟彩票机选下注，输入：\n    Enter: 确认\n    Space: 重选")]
 pub struct LotteryCommand {
     /// 下注数量
     ///

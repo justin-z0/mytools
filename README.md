@@ -24,9 +24,14 @@
 - timestamp 时间戳格式化工具 _( ✅ 2025/07/19)_
 - password 密码管理工具 _(✅ 2025/07/24)_
 - completion 生成命令补全脚本 _(✅ 2025/07/25)_
-- lottery 模拟机选彩票
+- lottery 模拟机选彩票 _(✅ 2025/07/26)_
 
 ## 工具详细说明
+
+### timestamp
+
+用于获取时间戳，或者将指定时间戳格式化为中国时间，支持毫秒操作
+![timestamp](./help/timestamp.svg)
 
 ### completion
 

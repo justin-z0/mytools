@@ -5,7 +5,7 @@ use clap::Parser;
 use cli::YTCommand;
 
 #[derive(Parser)]
-#[command(version)]
+#[command(version, about="Your Tools")]
 struct Cli {
     #[command(subcommand)]
     command: YTCommand,
