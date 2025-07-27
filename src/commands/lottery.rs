@@ -45,8 +45,16 @@ fn generate_lottery_number() {
     };
 
     for i in 0..lottery.red.len() {
-        lottery.red[i] = rand::random::<u8>() % 33 + 1;
+        let mut n: u8;
+        loop {
+            n = rand::random::<u8>() % 33 + 1;
+            if !lottery.red.contains(&n) {
+                break;
+            }
+        }
+        lottery.red[i] = n;
     }
+    lottery.red.sort();
     lottery.blue = rand::random::<u8>() % 16 + 1;
 
     // 格式化红色球数字，每个占两位，不足补0，空格分隔
