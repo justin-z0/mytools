@@ -33,6 +33,14 @@
 用于获取时间戳，或者将指定时间戳格式化为中国时间，支持毫秒操作
 ![timestamp](./help/timestamp.svg)
 
+### lottery
+
+模拟机选彩票，支持同时生成多注，默认为1注。输入：
+- 回车键：确认
+- 空格键：重选
+
+![lottery](./help/lottery.svg)
+
 ### completion
 
 生成命令补全脚本，支持 bash、zsh、fish 等多种 shell。
