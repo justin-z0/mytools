@@ -73,8 +73,7 @@ struct Record {
 use std::fmt;
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let tzhm = self.tzhm[1..self.tzhm.len()-2].to_string()
-                                .split(';')
+        let tzhm = self.tzhm.split(';')
                                 .map(|x| x.to_string())
                                 .collect::<Vec<String>>()
                                 .join("\n          ");
@@ -105,18 +104,23 @@ impl super::Runable for LotteryCommand {
                     // 2. 从网站中读取下注期号的开奖信息
                     match fetch_kaijiang_info(&record.issue) {
                         Ok(info) => {
+                            let need_update = record.open_time.is_empty();
                             record.open_time = info.open_time.clone();
                             record.kjhm = info.kjhm.clone();
-                            let tzhms: Vec<Lottery> = record.tzhm[1..record.tzhm.len() - 2].to_string()
-                                                        .split(';')
+                            let tzhms: Vec<Lottery> = record.tzhm.split(';')
                                                         .map(|x| x.parse().unwrap())
                                                         .collect();
                             let kjhm: Lottery = info.kjhm.parse().unwrap();
                             record.level = validate_lottery(&kjhm, &tzhms);
                             println!("{}", record);
+                            // 3. 将信息写入数据库
+                            if need_update {
+                                conn.execute("UPDATE record set open_time=?, kjhm=?, level=? WHERE issue=?",
+                                    (record.open_time, record.kjhm, record.level, record.issue)).unwrap();
+                            }
                         }
-                        Err(e) => {
-                            println!("获取开奖信息失败：{}", e);
+                        Err(_) => {
+                            println!("获取开奖信息失败：\n\n{}", record);
                         }
                     }
                 }
@@ -124,8 +128,8 @@ impl super::Runable for LotteryCommand {
             None => {
                 // 没有子命令时的默认行为
                 let cur_issue = get_cur_issue().unwrap();
-                println!("期号: {}", cur_issue);
-                println!("机选: {} 注", self.bets);
+                println!("  期号: {}", cur_issue);
+                println!("双色球: {} 注", self.bets);
                 let mut bets: Vec<Lottery> = Vec::new();
                 loop {
                     for _ in 0..self.bets {
@@ -287,7 +291,7 @@ fn get_cur_issue() -> Result<String> {
 
 fn write_bets(bets: &Vec<Lottery>, conn: &Connection, issue: &String) -> Result<()> {
     // 将 bets 写入数据库
-    let mut tzhm = "\"".to_string();
+    let mut tzhm = String::new();
     for bet in bets {
         for red in bet.red {
             tzhm.push_str(&format!("{:02},", red));
@@ -298,22 +302,15 @@ fn write_bets(bets: &Vec<Lottery>, conn: &Connection, issue: &String) -> Result<
     let mut sql = conn.prepare("SELECT tzhm from record where issue=?1")?;
     let record = sql.query_row([issue], |row| row.get::<_, String>(0));
 
-    match record {
-        Ok(record) => {
-            let trimed_record: String = record[1..record.len() - 1].to_string();
-            tzhm.push_str(&trimed_record);
-        }
-        Err(_) => {
-            // 没有记录，直接写入
-        }
+    if let Ok(result) = record {
+        tzhm.push_str(&result);
     }
-
-    tzhm.push_str("\"");
 
     sql = conn.prepare(
         "INSERT INTO record (issue, tzhm) VALUES (?1, ?2)
                                 ON CONFLICT(issue) DO UPDATE SET tzhm = ?2",
     )?;
+    tzhm =tzhm.trim_end_matches(";").to_string();
     sql.execute((issue, &tzhm))?;
     Ok(())
 }
