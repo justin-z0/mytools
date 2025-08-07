@@ -57,7 +57,7 @@ struct Target {
 
 fn read_target(target: &String) {
     let mut config_path = home_dir().expect("无法访问Home目录");
-    config_path.push(".config/yt/config.toml");
+    config_path.push(".yt/password/config.toml");
     if !config_path.exists() {
         println!("配置文件不存在");
         return;
@@ -85,7 +85,7 @@ fn read_target(target: &String) {
 
 fn write_target(target: &String, username: &String, password: &String) {
     let mut config_path = home_dir().expect("无法访问Home目录");
-    config_path.push(".config/yt/config.toml");
+    config_path.push(".yt/password/config.toml");
 
     let content = if config_path.exists() {
         fs::read_to_string(&config_path).unwrap()
