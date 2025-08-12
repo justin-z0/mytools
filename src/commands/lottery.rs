@@ -29,7 +29,10 @@ pub struct LotteryCommand {
 #[derive(Subcommand)]
 enum CheckCommand {
     /// 检查是否中奖
-    Check,
+    Check {
+        #[arg(short, long)]
+        issue: Option<String>,
+    },
 }
 struct Lottery {
     red: [u8; 6],
@@ -97,10 +100,19 @@ impl super::Runable for LotteryCommand {
         conn.execute("CREATE TABLE IF NOT EXISTS record (issue TEXT PRIMARY KEY, open_time TEXT, kjhm TEXT, tzhm TEXT, level INTEGER)", ()).unwrap();
 
         match &self.cmd {
-            Some(CheckCommand::Check) => {
+            Some(CheckCommand::Check { issue }) => {
                 // 处理 Check 子命令的逻辑
-                // 1. 从数据库中读取最后一期自选记录
-                if let Some(mut record) = get_last_record(&conn).unwrap() {
+
+                // 1. 从数据库中读取指定期号的记录
+                let record = if let Some(issue) = issue {
+                    // 命令行上指定了期号
+                    get_record(&conn, issue).unwrap()
+                } else {
+                    // 没有指定期号，从数据库中读取最后一期记录
+                    get_last_record(&conn).unwrap()
+                };
+
+                if let Some(mut record) = record {
                     // 2. 从网站中读取下注期号的开奖信息
                     match fetch_kaijiang_info(&record.issue) {
                         Ok(info) => {
@@ -315,7 +327,25 @@ fn write_bets(bets: &Vec<Lottery>, conn: &Connection, issue: &String) -> Result<
     Ok(())
 }
 
-// 在 lottery.rs 文件中添加获取最后一条记录的函数
+// 获取指定期号记录
+fn get_record(conn: &Connection, issue: &String) -> Result<Option<Record>> {
+    let mut sql = conn.prepare("SELECT issue, open_time, kjhm, tzhm, level FROM record WHERE issue=?1")?;
+    let record = sql.query_row([issue], |row| {
+        Ok(Record {
+            issue: row.get(0)?,
+            open_time: row.get(1).unwrap_or_default(),
+            kjhm: row.get(2).unwrap_or_default(),
+            tzhm: row.get(3)?,
+            level: row.get(4).unwrap_or_default(),
+        })
+    });
+
+    match record {
+        Ok(r) => Ok(Some(r)),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(e) => Err(e.into()),
+    }
+}
 
 /// 获取数据库中最后一期开奖记录
 fn get_last_record(conn: &Connection) -> Result<Option<Record>> {
