@@ -1,20 +1,17 @@
-mod commands;
 mod cli;
+mod commands;
 
 use clap::Parser;
-use cli::YTCommand;
+use cli::MTCommand;
 
 #[derive(Parser)]
-#[command(version, about="Your Tools")]
+#[command(version, about = "My Tools")]
 struct Cli {
     #[command(subcommand)]
-    command: YTCommand,
+    command: MTCommand,
 }
-
 
 fn main() {
     let cli = Cli::parse();
     cli.command.run();
 }
-
-

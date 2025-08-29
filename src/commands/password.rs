@@ -1,9 +1,9 @@
 use clap::Parser;
 use clap::Subcommand;
-use std::fs;
-use serde::{self, Deserialize, Serialize};
 use dirs::home_dir;
-use toml_edit::{DocumentMut, Value, Table, Item};
+use serde::{self, Deserialize, Serialize};
+use std::fs;
+use toml_edit::{DocumentMut, Item, Table, Value};
 
 #[derive(Parser)]
 pub struct PasswordCommand {
@@ -17,7 +17,7 @@ pub enum PasswordSubCommand {
     /// 获取密码
     Get {
         /// 获取特定目标（Host主机或站点）的账户信息
-        target: String
+        target: String,
     },
     /// 设置密码
     Set {
@@ -27,7 +27,7 @@ pub enum PasswordSubCommand {
         username: String,
         /// 密码
         password: String,
-    }
+    },
 }
 
 impl super::Runable for PasswordCommand {
@@ -36,7 +36,11 @@ impl super::Runable for PasswordCommand {
             PasswordSubCommand::Get { target } => {
                 read_target(target);
             }
-            PasswordSubCommand::Set { target, username, password } => {
+            PasswordSubCommand::Set {
+                target,
+                username,
+                password,
+            } => {
                 write_target(target, username, password);
             }
         }
@@ -57,7 +61,7 @@ struct Target {
 
 fn read_target(target: &String) {
     let mut config_path = home_dir().expect("无法访问Home目录");
-    config_path.push(".yt/password/config.toml");
+    config_path.push(".mt/password/config.toml");
     if !config_path.exists() {
         println!("配置文件不存在");
         return;
@@ -85,7 +89,7 @@ fn read_target(target: &String) {
 
 fn write_target(target: &String, username: &String, password: &String) {
     let mut config_path = home_dir().expect("无法访问Home目录");
-    config_path.push(".yt/password/config.toml");
+    config_path.push(".mt/password/config.toml");
 
     let content = if config_path.exists() {
         fs::read_to_string(&config_path).unwrap()

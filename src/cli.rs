@@ -1,7 +1,6 @@
-use clap::{Subcommand};
 use crate::commands::*;
+use clap::Subcommand;
 use std::boxed::Box;
-
 
 /*
 * 对子命令添加描述信息：
@@ -10,7 +9,7 @@ use std::boxed::Box;
 */
 
 #[derive(Subcommand)]
-pub enum YTCommand {
+pub enum MTCommand {
     /// 将时间戳转换为时区时间
     Timestamp(timestamp::TimestampCommand),
     /// 密码存取工具
@@ -19,17 +18,16 @@ pub enum YTCommand {
     Completion(completion::CompletionCommand),
     // 彩票号码生成工具
     Lottery(lottery::LotteryCommand),
-
     // 添加其他子命令
 }
 
-impl YTCommand {
+impl MTCommand {
     pub fn run(self) {
         let cmd: Box<dyn Runable> = match self {
-            YTCommand::Timestamp(cmd) => Box::new(cmd),
-            YTCommand::Password(cmd) => Box::new(cmd),
-            YTCommand::Completion(cmd) => Box::new(cmd),
-            YTCommand::Lottery(cmd) => Box::new(cmd),
+            MTCommand::Timestamp(cmd) => Box::new(cmd),
+            MTCommand::Password(cmd) => Box::new(cmd),
+            MTCommand::Completion(cmd) => Box::new(cmd),
+            MTCommand::Lottery(cmd) => Box::new(cmd),
         };
         cmd.run();
     }

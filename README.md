@@ -1,13 +1,13 @@
 ```text
-                          _              _
- _   _  ___  _   _ _ __  | |_ ___   ___ | |___
-| | | |/ _ \| | | | '__| | __/ _ \ / _ \| / __|
-| |_| | (_) | |_| | |    | || (_) | (_) | \__ \
- \__, |\___/ \__,_|_|     \__\___/ \___/|_|___/
- |___/
+  __  ____   __  _____ ___   ___  _     ____
+ |  \/  \ \ / / |_   _/ _ \ / _ \| |   / ___|
+ | |\/| |\ V /    | || | | | | | | |   \___ \
+ | |  | | | |     | || |_| | |_| | |___ ___) |
+ |_|  |_| |_|     |_| \___/ \___/|_____|____/
+
 ```
 
-常用工具集合，通过 `yt` 入口掌控一切
+常用工具集合，通过 `mt` 入口掌控一切
 
 ## 总体规划
 
@@ -17,7 +17,7 @@
 
 ## 使用方式
 
-所有的子命令调用都由 `yt` 发起，例如：`yt timestamp 1752915718`
+所有的子命令调用都由 `mt` 发起，例如：`mt timestamp 1752915718`
 
 ## 工具列表
 
@@ -49,14 +49,14 @@
 
 ```bash
 # 生成 zsh 补全脚本并添加到 ~/.zshrc
-yt completion zsh > ~/.zfunc/_yt
+mt completion zsh > ~/.zfunc/_mt
 echo 'fpath=(~/.zfunc $fpath)' >> ~/.zshrc
 echo 'autoload -Uz compinit && compinit' >> ~/.zshrc
 
 # 生成 bash 补全脚本并添加到 ~/.bashrc
-yt completion bash > ~/.bash_completion.d/yt
- echo 'source ~/.bash_completion.d/yt' >> ~/.bashrc
+mt completion bash > ~/.bash_completion.d/mt
+ echo 'source ~/.bash_completion.d/mt' >> ~/.bashrc
 
 # 生成 fish 补全脚本并添加到 ~/.config/fish/completions/
-yt completion fish > ~/.config/fish/completions/yt.fish
+mt completion fish > ~/.config/fish/completions/mt.fish
 ```

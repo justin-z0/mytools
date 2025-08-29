@@ -7,6 +7,7 @@ use crossterm::{
     execute,
     terminal::{self, ClearType, disable_raw_mode, enable_raw_mode},
 };
+use dirs::home_dir;
 use regex::Regex;
 use reqwest::blocking::Client;
 use rusqlite::Connection;
@@ -14,7 +15,6 @@ use std::{
     io::{Write, stdout},
     str::FromStr,
 };
-use dirs::home_dir;
 
 #[derive(Parser)]
 #[command(about = "模拟彩票机选下注，输入：\n    Enter: 确认\n    Space: 重选")]
@@ -47,9 +47,15 @@ impl FromStr for Lottery {
         if parts.len() != 7 {
             return Err(anyhow!("Invalid lottery format"));
         }
-        let red = parts[0..6].iter().map(|x| x.parse().unwrap()).collect::<Vec<u8>>();
+        let red = parts[0..6]
+            .iter()
+            .map(|x| x.parse().unwrap())
+            .collect::<Vec<u8>>();
         let blue = parts[6].parse().unwrap();
-        Ok(Lottery { red: red.try_into().unwrap(), blue })
+        Ok(Lottery {
+            red: red.try_into().unwrap(),
+            blue,
+        })
     }
 }
 /// 开奖信息
@@ -76,12 +82,17 @@ struct Record {
 use std::fmt;
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let tzhm = self.tzhm.split(';')
-                                .map(|x| x.to_string())
-                                .collect::<Vec<String>>()
-                                .join("\n          ");
-        write!(f, "    期号: {}\n开奖时间: {}\n开奖号码: {}\n投注号码: {}\n中奖等级: {}",
-               self.issue, self.open_time, self.kjhm, tzhm, self.level)
+        let tzhm = self
+            .tzhm
+            .split(';')
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>()
+            .join("\n          ");
+        write!(
+            f,
+            "    期号: {}\n开奖时间: {}\n开奖号码: {}\n投注号码: {}\n中奖等级: {}",
+            self.issue, self.open_time, self.kjhm, tzhm, self.level
+        )
     }
 }
 
@@ -89,7 +100,7 @@ impl super::Runable for LotteryCommand {
     fn run(&self) {
         // 读取历史数据
         let mut data_path = home_dir().expect("无法访问Home目录");
-        data_path.push(".yt/lottery/data.db");
+        data_path.push(".mt/lottery/data.db");
 
         // 确保目录存在
         if let Some(parent) = data_path.parent() {
@@ -119,16 +130,18 @@ impl super::Runable for LotteryCommand {
                             let need_update = record.open_time.is_empty();
                             record.open_time = info.open_time.clone();
                             record.kjhm = info.kjhm.clone();
-                            let tzhms: Vec<Lottery> = record.tzhm.split(';')
-                                                        .map(|x| x.parse().unwrap())
-                                                        .collect();
+                            let tzhms: Vec<Lottery> =
+                                record.tzhm.split(';').map(|x| x.parse().unwrap()).collect();
                             let kjhm: Lottery = info.kjhm.parse().unwrap();
                             record.level = validate_lottery(&kjhm, &tzhms);
                             println!("{}", record);
                             // 3. 将信息写入数据库
                             if need_update {
-                                conn.execute("UPDATE record set open_time=?, kjhm=?, level=? WHERE issue=?",
-                                    (record.open_time, record.kjhm, record.level, record.issue)).unwrap();
+                                conn.execute(
+                                    "UPDATE record set open_time=?, kjhm=?, level=? WHERE issue=?",
+                                    (record.open_time, record.kjhm, record.level, record.issue),
+                                )
+                                .unwrap();
                             }
                         }
                         Err(_) => {
@@ -322,14 +335,15 @@ fn write_bets(bets: &Vec<Lottery>, conn: &Connection, issue: &String) -> Result<
         "INSERT INTO record (issue, tzhm) VALUES (?1, ?2)
                                 ON CONFLICT(issue) DO UPDATE SET tzhm = ?2",
     )?;
-    tzhm =tzhm.trim_end_matches(";").to_string();
+    tzhm = tzhm.trim_end_matches(";").to_string();
     sql.execute((issue, &tzhm))?;
     Ok(())
 }
 
 // 获取指定期号记录
 fn get_record(conn: &Connection, issue: &String) -> Result<Option<Record>> {
-    let mut sql = conn.prepare("SELECT issue, open_time, kjhm, tzhm, level FROM record WHERE issue=?1")?;
+    let mut sql =
+        conn.prepare("SELECT issue, open_time, kjhm, tzhm, level FROM record WHERE issue=?1")?;
     let record = sql.query_row([issue], |row| {
         Ok(Record {
             issue: row.get(0)?,
@@ -383,11 +397,41 @@ fn validate_lottery(kjhm: &Lottery, tzhm: &Vec<Lottery>) -> u8 {
         let level;
         let hit_blue = bet.blue == kjhm.blue;
         match bet.red.iter().filter(|&x| kjhm.red.contains(x)).count() {
-            6 => if hit_blue { level = 1 } else { level = 2 },
-            5 => if hit_blue { level = 3 } else { level = 4 },
-            4 => if hit_blue { level = 4 } else { level = 5 },
-            3 => if hit_blue { level = 5 } else { level = 0 },
-            _ => if hit_blue { level = 6 } else { level = 0 }
+            6 => {
+                if hit_blue {
+                    level = 1
+                } else {
+                    level = 2
+                }
+            }
+            5 => {
+                if hit_blue {
+                    level = 3
+                } else {
+                    level = 4
+                }
+            }
+            4 => {
+                if hit_blue {
+                    level = 4
+                } else {
+                    level = 5
+                }
+            }
+            3 => {
+                if hit_blue {
+                    level = 5
+                } else {
+                    level = 0
+                }
+            }
+            _ => {
+                if hit_blue {
+                    level = 6
+                } else {
+                    level = 0
+                }
+            }
         };
 
         if level < max_level {
@@ -398,14 +442,13 @@ fn validate_lottery(kjhm: &Lottery, tzhm: &Vec<Lottery>) -> u8 {
     if max_level < 7 { max_level } else { 0 }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_lottery_from_str() {
-        let lottery_str = "01,02,03,04,05,06;07";
+        let lottery_str = "01,02,03,04,05,06,07";
         let lottery: Lottery = lottery_str.parse().unwrap();
 
         assert_eq!(lottery.red, [1, 2, 3, 4, 5, 6]);
