@@ -60,3 +60,6 @@ mt completion bash > ~/.bash_completion.d/mt
 # 生成 fish 补全脚本并添加到 ~/.config/fish/completions/
 mt completion fish > ~/.config/fish/completions/mt.fish
 ```
+
+## 致谢
+- termtosvg 终端命令录制工具
