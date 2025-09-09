@@ -4,3 +4,8 @@ script = [
     "CRATE_NAME=$(grep '^name' Cargo.toml | cut -d '\"' -f2)",
     "cp ./target/release/$CRATE_NAME $HOME/workspace/tools"
 ]
+
+[tasks.install]
+script = [
+    "mt completion zsh > ~/.zfunc/_mt"
+]
